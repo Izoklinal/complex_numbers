@@ -10,6 +10,7 @@ Camera2D cam = {0};
 
 const int width = 800;
 const int height = 600;
+const float rotation = 0.001f;
 
 inline Vector2 vec2sub(Vector2 a, Vector2 b) { 
     return Vector2{ .x = a.x - b.x, .y = a.y - b.y };
@@ -162,10 +163,6 @@ private:
 
 
 int main() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> distrib(100.0f, 500.0f);
-    
     InitWindow(width, height, "Ahoj!");
     cam.zoom = 1.0f;
 
@@ -187,11 +184,11 @@ int main() {
         }
 
         if (IsKeyDown(KEY_D)) {
-            rect.rotate(0.001f);
+            rect.rotate(rotation);
         }
 
         if (IsKeyDown(KEY_A)) {
-            rect.rotate(-0.001f);
+            rect.rotate(-rotation);
         }
 
         if (IsKeyPressed(KEY_ONE)) {
