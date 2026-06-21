@@ -160,9 +160,26 @@ public:
     }
 
     void render_sides() {
-        for (size_t i = 0; i < 6; i++)
+        for (size_t i = 0; i < 2; i++)
         {
             DrawSphere(sides[i], 0.1f, col);
+            Vector3 dist_btw = Vec3::sub_vec3(sides[i], center);
+            dist_btw = Vec3::add_vec3(sides[i], dist_btw);
+            DrawLine3D(sides[i], dist_btw, RED);
+        }
+        for (size_t i = 2; i < 4; i++)
+        {
+            DrawSphere(sides[i], 0.1f, col);
+            Vector3 dist_btw = Vec3::sub_vec3(sides[i], center);
+            dist_btw = Vec3::add_vec3(sides[i], dist_btw);
+            DrawLine3D(sides[i], dist_btw, GREEN);
+        }
+        for (size_t i = 4; i < 6; i++)
+        {
+            DrawSphere(sides[i], 0.1f, col);
+            Vector3 dist_btw = Vec3::sub_vec3(sides[i], center);
+            dist_btw = Vec3::add_vec3(sides[i], dist_btw);
+            DrawLine3D(sides[i], dist_btw, BLUE);
         }
     }
 
@@ -230,13 +247,28 @@ public:
     void rotate(float rad, Vector3 axis) {
         for (size_t i = 0; i < 8; i++)
         {
+            vs[i] = Vec3::sub_vec3(vs[i], center);
             vs[i] = Vec3::rotate_quaternion(vs[i], axis, rad);
+            vs[i] = Vec3::add_vec3(vs[i], center);
         }
         for (size_t i = 0; i < 6; i++)
         {
+            sides[i] = Vec3::sub_vec3(sides[i], center);
             sides[i] = Vec3::rotate_quaternion(sides[i], axis, rad);
+            sides[i] = Vec3::add_vec3(sides[i], center);
         }
-        
+    }
+    
+    void move(Vector3 move) {
+        for (size_t i = 0; i < 8; i++)
+        {
+            vs[i] = Vec3::add_vec3(vs[i], move);
+        }
+        for (size_t i = 0; i < 6; i++)
+        {
+            sides[i] = Vec3::add_vec3(sides[i], move);
+        }
+        init_center();
     }
 };
 
@@ -305,13 +337,37 @@ int main() {
             c.rotate(0.01f, { .x = 0.0f, .y = 0.0f, .z = -1.0f });
         }
 
+        if (IsKeyDown(KEY_O)) {
+            c.move({ .x = 0.0f, .y = 0.1f, .z = 0.0f });
+        }
+
+        if (IsKeyDown(KEY_L)) {
+            c.move({ .x = 0.0f, .y = -0.1f, .z = 0.0f });
+        }
+
+        if (IsKeyDown(KEY_K)) {
+            c.move({ .x = -0.1f, .y = 0.0f, .z = 0.0f });
+        }
+
+        if (IsKeyDown(KEY_SEMICOLON)) {
+            c.move({ .x = 0.1f, .y = 0.0f, .z = 0.0f });
+        }
+
+        if (IsKeyDown(KEY_I)) {
+            c.move({ .x = 0.0f, .y = 0.0f, .z = 0.1f });
+        }
+
+        if (IsKeyDown(KEY_P)) {
+            c.move({ .x = 0.0f, .y = 0.0f, .z = -0.1f });
+        }
+
         BeginDrawing();
         ClearBackground(BLACK);
         BeginMode3D(cam);
         {
             c.render_lines();
-            // c.render_center();
-            // c.render_sides();
+            c.render_center();
+            c.render_sides();
         }
         EndMode3D();
         EndDrawing();
