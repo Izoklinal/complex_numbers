@@ -59,13 +59,18 @@ public:
     static inline Vector3 mul_scalar(Vector3 a, float b) {
         return Vector3{ .x = a.x * b, .y = a.y * b, .z = a.z * b };
     }
+    static inline Vector3 div_scalar(Vector3 a, float b) {
+        return Vector3{ .x = a.x / b, .y = a.y / b, .z = a.z / b };
+    }
     static inline Vector3 add_vec3(Vector3 a, Vector3 b) {
         return Vector3{ .x = a.x + b.x, .y = a.y + b.y, .z = a.z + b.z };
     }
     static inline Vector3 sub_vec3(Vector3 a, Vector3 b) {
         return Vector3{ .x = a.x - b.x, .y = a.y - b.y, .z = a.z - b.z };
     }
-    
+    static inline float dot_prod(Vector3 a, Vector3 b) {
+        return a.x*b.x + a.y*b.y + a.z*b.z;
+    }
     static Vector3 rotate_quaternion(Vector3 vec3, Vector3 axis, float rad) {
         float half_rad = rad * 0.5f;
         float cos = cosf(half_rad);
@@ -92,28 +97,123 @@ public:
 class Cube {
 private:
     std::array<Vector3, 8> vs;
+    std::array<Vector3, 6> sides;
+    Vector3 center;
     Color col;
+
+    void init_center() {
+        center = Vector3(0.0f, 0.0f, 0.0f);
+        for (size_t i = 0; i < 8; i++)
+        {
+            center = Vec3::add_vec3(center, vs[i]);
+        }
+        center = Vec3::div_scalar(center, 8.0f);
+    }
+    void init_sides() {
+        sides[0] = {
+            .x = (vs[0].x + vs[1].x + vs[2].x + vs[3].x) / 4.0f,
+            .y = (vs[0].y + vs[1].y + vs[2].y + vs[3].y) / 4.0f,
+            .z = (vs[0].z + vs[1].z + vs[2].z + vs[3].z) / 4.0f,
+        };
+
+        sides[1] = {
+            .x = (vs[4].x + vs[5].x + vs[6].x + vs[7].x) / 4.0f,
+            .y = (vs[4].y + vs[5].y + vs[6].y + vs[7].y) / 4.0f,
+            .z = (vs[4].z + vs[5].z + vs[6].z + vs[7].z) / 4.0f,
+        };
+
+        sides[2] = {
+            .x = (vs[0].x + vs[3].x + vs[4].x + vs[7].x) / 4.0f,
+            .y = (vs[0].y + vs[3].y + vs[4].y + vs[7].y) / 4.0f,
+            .z = (vs[0].z + vs[3].z + vs[4].z + vs[7].z) / 4.0f,
+        };
+
+        sides[3] = {
+            .x = (vs[1].x + vs[2].x + vs[5].x + vs[6].x) / 4.0f,
+            .y = (vs[1].y + vs[2].y + vs[5].y + vs[6].y) / 4.0f,
+            .z = (vs[1].z + vs[2].z + vs[5].z + vs[6].z) / 4.0f,
+        };
+
+        sides[4] = {
+            .x = (vs[0].x + vs[1].x + vs[5].x + vs[4].x) / 4.0f,
+            .y = (vs[0].y + vs[1].y + vs[5].y + vs[4].y) / 4.0f,
+            .z = (vs[0].z + vs[1].z + vs[5].z + vs[4].z) / 4.0f,
+        };
+
+        sides[5] = {
+            .x = (vs[3].x + vs[2].x + vs[7].x + vs[6].x) / 4.0f,
+            .y = (vs[3].y + vs[2].y + vs[7].y + vs[6].y) / 4.0f,
+            .z = (vs[3].z + vs[2].z + vs[7].z + vs[6].z) / 4.0f,
+        };
+    }
 public:
     Cube(std::array<Vector3, 8> p_vs, Color p_col) {
         vs = p_vs;
         col = p_col;
+        
+        init_center();
+        init_sides();
+    }
+
+    void render_center() {
+        DrawSphere(center, 0.1f, col);
+    }
+
+    void render_sides() {
+        for (size_t i = 0; i < 6; i++)
+        {
+            DrawSphere(sides[i], 0.1f, col);
+        }
     }
 
     void render_lines() {
-        DrawLine3D(vs[0], vs[1], col);
-        DrawLine3D(vs[1], vs[2], col);
-        DrawLine3D(vs[2], vs[3], col);
-        DrawLine3D(vs[3], vs[0], col);
+        // up
+        if (Vec3::dot_prod(cam.position, sides[0]) > 0) {
+            DrawLine3D(vs[0], vs[1], col);
+            DrawLine3D(vs[1], vs[2], col);
+            DrawLine3D(vs[2], vs[3], col);
+            DrawLine3D(vs[3], vs[0], col);
+        } 
 
-        DrawLine3D(vs[4], vs[5], col);
-        DrawLine3D(vs[5], vs[6], col);
-        DrawLine3D(vs[6], vs[7], col);
-        DrawLine3D(vs[7], vs[4], col);
+        // down
+        if (Vec3::dot_prod(cam.position, sides[1]) > 0) {
+            DrawLine3D(vs[4], vs[5], col);
+            DrawLine3D(vs[5], vs[6], col);
+            DrawLine3D(vs[6], vs[7], col);
+            DrawLine3D(vs[7], vs[4], col);
+        }
 
-        DrawLine3D(vs[0], vs[4], col);
-        DrawLine3D(vs[1], vs[5], col);
-        DrawLine3D(vs[2], vs[6], col);
-        DrawLine3D(vs[3], vs[7], col);
+        // front
+        if (Vec3::dot_prod(cam.position, sides[2]) > 0) {
+            DrawLine3D(vs[0], vs[3], col);
+            DrawLine3D(vs[3], vs[7], col);
+            DrawLine3D(vs[7], vs[4], col);
+            DrawLine3D(vs[4], vs[0], col);
+        }
+
+        // back
+        if (Vec3::dot_prod(cam.position, sides[3]) > 0) {
+            DrawLine3D(vs[1], vs[2], col);
+            DrawLine3D(vs[2], vs[6], col);
+            DrawLine3D(vs[6], vs[5], col);
+            DrawLine3D(vs[5], vs[1], col);
+        }
+
+        // left
+        if (Vec3::dot_prod(cam.position, sides[4]) > 0) {
+            DrawLine3D(vs[0], vs[1], col);
+            DrawLine3D(vs[1], vs[5], col);
+            DrawLine3D(vs[5], vs[4], col);
+            DrawLine3D(vs[4], vs[0], col);
+        }
+
+        // right
+        if (Vec3::dot_prod(cam.position, sides[5]) > 0) {
+            DrawLine3D(vs[3], vs[2], col);
+            DrawLine3D(vs[2], vs[6], col);
+            DrawLine3D(vs[6], vs[7], col);
+            DrawLine3D(vs[7], vs[3], col);
+        }
     }
 
     void render_vs() {
@@ -132,6 +232,11 @@ public:
         {
             vs[i] = Vec3::rotate_quaternion(vs[i], axis, rad);
         }
+        for (size_t i = 0; i < 6; i++)
+        {
+            sides[i] = Vec3::rotate_quaternion(sides[i], axis, rad);
+        }
+        
     }
 };
 
@@ -205,7 +310,8 @@ int main() {
         BeginMode3D(cam);
         {
             c.render_lines();
-            // c.render_vs();
+            // c.render_center();
+            // c.render_sides();
         }
         EndMode3D();
         EndDrawing();
