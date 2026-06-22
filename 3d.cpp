@@ -28,6 +28,21 @@ public:
     }
     static inline Quat mul(Quat a, Quat b) {
         /*
+        Q1*Q1 = w1w2  + w1x2i  + w1y2j  + w1z2k  +
+              + x1iw2 + x1ix2i + x1iy2j + x1iz2k +
+              + y1jw2 + y1jx2i + y1jy2j + y1jz2k +
+              + z1kw2 + z1kx2i + z1ky2j + z1kz2k
+        
+        Q1*Q2 = w1w2  + w1x2i + w1y2j + w1z2k +
+              + x1w2i - x1x2  + x1y2k - x1z2j +
+              + y1w2j - y1x2k - y1y2  + y1z2i +
+              + z1w2k + z1x2j - z1y2i - z1z2
+        
+        Q1*Q2 = (w1w2 - x1x2 - y1y2 - z1z2)  +
+              + (w1x2 + x1w2 + y1z2 0 z1y2)i +
+              + (w1y2 - x1z2 + y1w2 + z1x2)j +
+              + (w1z2 + x1y2 - y1x2 + z1w2)k
+
         w = w1w2 - x1x2 - y1y2 - z1z2
         x = w1x2 + x1w2 + y1z2 - z1y2
         y = w1y2 - x1z2 + y1w2 + z1x2
