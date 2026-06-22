@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include <array>
+#include <iostream>
 #include <cmath>
 
 Camera cam = {0};
@@ -98,6 +99,8 @@ class Cube {
 private:
     std::array<Vector3, 8> vs;
     std::array<Vector3, 6> sides;
+    std::array<Vector3, 6> normales;
+    const float MIN_DOT_PROD = -0.1f;
     Vector3 center;
     Color col;
 
@@ -146,6 +149,12 @@ private:
             .z = (vs[3].z + vs[2].z + vs[7].z + vs[6].z) / 4.0f,
         };
     }
+    void init_normales() {
+        for (size_t i = 0; i < 6; i++)
+        {
+            normales[i] = Vec3::normalize(Vec3::sub_vec3(center, sides[i]));
+        }
+    }
 public:
     Cube(std::array<Vector3, 8> p_vs, Color p_col) {
         vs = p_vs;
@@ -153,6 +162,7 @@ public:
         
         init_center();
         init_sides();
+        init_normales();
     }
 
     void render_center() {
@@ -185,7 +195,7 @@ public:
 
     void render_lines() {
         // up
-        if (Vec3::dot_prod(cam.position, sides[0]) > 0) {
+        if (Vec3::dot_prod(Vec3::normalize(cam.position), normales[0]) < MIN_DOT_PROD) {
             DrawLine3D(vs[0], vs[1], col);
             DrawLine3D(vs[1], vs[2], col);
             DrawLine3D(vs[2], vs[3], col);
@@ -193,7 +203,7 @@ public:
         } 
 
         // down
-        if (Vec3::dot_prod(cam.position, sides[1]) > 0) {
+        if (Vec3::dot_prod(Vec3::normalize(cam.position), normales[1]) < MIN_DOT_PROD) {
             DrawLine3D(vs[4], vs[5], col);
             DrawLine3D(vs[5], vs[6], col);
             DrawLine3D(vs[6], vs[7], col);
@@ -201,7 +211,7 @@ public:
         }
 
         // front
-        if (Vec3::dot_prod(cam.position, sides[2]) > 0) {
+        if (Vec3::dot_prod(Vec3::normalize(cam.position), normales[2]) < MIN_DOT_PROD) {
             DrawLine3D(vs[0], vs[3], col);
             DrawLine3D(vs[3], vs[7], col);
             DrawLine3D(vs[7], vs[4], col);
@@ -209,7 +219,7 @@ public:
         }
 
         // back
-        if (Vec3::dot_prod(cam.position, sides[3]) > 0) {
+        if (Vec3::dot_prod(Vec3::normalize(cam.position), normales[3]) < MIN_DOT_PROD) {
             DrawLine3D(vs[1], vs[2], col);
             DrawLine3D(vs[2], vs[6], col);
             DrawLine3D(vs[6], vs[5], col);
@@ -217,7 +227,7 @@ public:
         }
 
         // left
-        if (Vec3::dot_prod(cam.position, sides[4]) > 0) {
+        if (Vec3::dot_prod(Vec3::normalize(cam.position), normales[4]) < MIN_DOT_PROD) {
             DrawLine3D(vs[0], vs[1], col);
             DrawLine3D(vs[1], vs[5], col);
             DrawLine3D(vs[5], vs[4], col);
@@ -225,7 +235,7 @@ public:
         }
 
         // right
-        if (Vec3::dot_prod(cam.position, sides[5]) > 0) {
+        if (Vec3::dot_prod(Vec3::normalize(cam.position), normales[5]) < MIN_DOT_PROD) {
             DrawLine3D(vs[3], vs[2], col);
             DrawLine3D(vs[2], vs[6], col);
             DrawLine3D(vs[6], vs[7], col);
@@ -257,6 +267,7 @@ public:
             sides[i] = Vec3::rotate_quaternion(sides[i], axis, rad);
             sides[i] = Vec3::add_vec3(sides[i], center);
         }
+        init_normales();
     }
     
     void move(Vector3 move) {
@@ -360,6 +371,14 @@ int main() {
         if (IsKeyDown(KEY_P)) {
             c.move({ .x = 0.0f, .y = 0.0f, .z = -0.1f });
         }
+
+        if (IsKeyDown(KEY_EQUAL)) {
+            cam.fovy += 0.1f;
+        } 
+
+        if (IsKeyDown(KEY_MINUS)) {
+            cam.fovy -= 0.1f;
+        } 
 
         BeginDrawing();
         ClearBackground(BLACK);
