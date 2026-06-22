@@ -101,11 +101,11 @@ public:
         Quat v = Quat(0.0f, vec3);
 
         Quat qv = Quat::mul(q, v);
-        Quat qvqinv = Quat::mul(qv, q_inv);
+        qv = Quat::mul(qv, q_inv);
         return Vector3{
-            .x = qvqinv.xi,
-            .y = qvqinv.yj,
-            .z = qvqinv.zk
+            .x = qv.xi,
+            .y = qv.yj,
+            .z = qv.zk
         };
     }
 };
